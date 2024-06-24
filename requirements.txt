@@ -1,4 +1,4 @@
-openai
+openai==0.34.0
 python-docx
 langchain
 numpy
