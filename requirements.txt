@@ -1,0 +1,8 @@
+openai
+python-docx
+langchain
+numpy
+scikit-learn
+sentence-transformers
+streamlit
+pillow
