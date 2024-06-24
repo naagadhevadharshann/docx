@@ -6,3 +6,4 @@ scikit-learn
 sentence-transformers
 streamlit
 pillow
+langchain_community
