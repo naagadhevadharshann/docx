@@ -123,8 +123,7 @@ def explain_image_summary(image_summary):
 
 # Function to generate a unique key
 def get_unique_key(base_key):
-    session_id = st.report_thread.get_report_ctx().session_id
-    return f"{base_key}_{session_id}"
+    return str(uuid.uuid4())[:8] + "_" + base_key
 
 # Main function
 def main():
