@@ -255,10 +255,10 @@ def main():
                     });
                 });
             </script>
-            """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)           
 
-            # Scroll to bottom button in the sidebar
-            if st.button('Scroll to Bottom'):
+             # Scroll to bottom button in the sidebar
+            if st.sidebar.button("Scroll to Bottom"):
                 st.markdown("""<script>window.scrollTo(0, document.body.scrollHeight);</script>""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
