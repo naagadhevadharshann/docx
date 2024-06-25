@@ -125,7 +125,7 @@ def main():
     st.title("Document Analysis")
 
     # Sidebar elements
-    st.sidebar.header(f"**Document analyser {idx + 1}**")
+    st.sidebar.header(f"Document analyser {idx + 1}")
     st.sidebar.header("Controls:")
    
     
