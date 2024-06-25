@@ -7,4 +7,3 @@ sentence-transformers
 streamlit
 pillow
 langchain_community
-langchain_community.schema
