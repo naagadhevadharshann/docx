@@ -100,7 +100,7 @@ def query_gpt(query, relevant_texts):
         ],
         max_tokens=150
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message['content'].strip()
 
 # Function to explain the image summary
 def explain_image_summary(image_summary):
@@ -118,7 +118,7 @@ def explain_image_summary(image_summary):
         ],
         max_tokens=150
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message['content'].strip()
 
 # Main function
 def main():
@@ -192,44 +192,28 @@ def main():
                 # Generate image summary embeddings
                 image_embeddings = model.encode(image_summaries, convert_to_tensor=True)
         
-            # Query section
-            query = st.text_input("Enter your query: ", key="query-input")
-            if query:
-                relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
+        # Chat interface
+        st.write("### Chat Interface")
+        if 'conversation' not in st.session_state:
+            st.session_state.conversation = []
 
-                if relevant_image_summary is None:
-                    st.write("No matching found")
-                else:
-                    # Display relevant image summary
-                    st.write(f"Relevant Image Summary: {relevant_image_summary}")
+        for chat in st.session_state.conversation:
+            user_query, bot_response = chat
+            st.write(f"**You:** {user_query}")
+            st.write(f"**Bot:** {bot_response}")
 
-                    # Decode and display image
-                    relevant_image = decode_image(encode_image(relevant_image_blob))
-                    st.image(relevant_image)
-
-                    # Explain the image summary
-                    explanation = explain_image_summary(relevant_image_summary)
-                    st.write(f"Explanation: {explanation}")
-
-                    # Query GPT for an answer based on the document content
-                    answer = query_gpt(query, text_elements + table_elements)
-                    st.write(f"Answer: {answer}")
-
-                    # Save chat
-                    st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
-
-                    # Add a new query box
-                    st.text_input("Enter your query: ", key="query-input-new")
-
-            # Show old chats
-            if 'old_chats' in st.session_state:
-                st.write("Chat History:")
-                for idx, chat in enumerate(st.session_state.old_chats):
-                    query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.write(f"Query {idx + 1}: {query}")
-                    st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
-                    st.write(f"Explanation {idx + 1}: {explanation}")
-                    st.write(f"Answer {idx + 1}: {answer}")
+        # Query input
+        query = st.text_input("Enter your query: ", key="query-input", label_visibility="collapsed")
+        if query:
+            # Find relevant image and text content
+            relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
+            if relevant_image_summary:
+                explanation = explain_image_summary(relevant_image_summary)
+                answer = query_gpt(query, text_elements + table_elements)
+                st.session_state.conversation.append((query, f"{explanation}\n\nAnswer: {answer}"))
+                st.experimental_rerun()
+            else:
+                st.write("No matching content found.")
 
 if __name__ == "__main__":
     main()
