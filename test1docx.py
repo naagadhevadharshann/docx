@@ -229,8 +229,7 @@ def main():
                     # Save chat
                     st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
 
-            # Add a new query box
-            st.text_input("Enter your query: ", key="query-input-new", help="Enter your next query here.")
+          
 
 if __name__ == "__main__":
     main()
