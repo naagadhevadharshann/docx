@@ -193,11 +193,11 @@ def main():
                 image_embeddings = model.encode(image_summaries, convert_to_tensor=True)
 
             # Display old chats at the top of the page
-            st.markdown("## Chat History:")
+            st.write("Chat History:")
             if 'old_chats' in st.session_state:
                 for idx, chat in enumerate(st.session_state.old_chats):
                     query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.markdown(f"**<span style='font-size:18px; font-weight:bold;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
+                    st.markdown(f"**<span style='font-size:20px; font-weight:bold;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
                     st.markdown(f"**<span style='font-weight:bold;'>Relevant Image Summary {idx + 1}:</span>** {relevant_image_summary}")
                     st.image(relevant_image, caption=f"Image {idx + 1}")
                     st.markdown(f"**<span style='font-weight:bold;'>Explanation {idx + 1}:</span>** {explanation}")
@@ -227,21 +227,17 @@ def main():
 
                             # Explain the image summary
                             explanation = explain_image_summary(relevant_image_summary)
-                            st.markdown(f"**<span style='font-size:20px; font-weight:bold;'>Explanation:</span>** {explanation}")
+                            st.markdown(f"**<span style='font-weight:bold;'>Explanation:</span>** {explanation}")
 
                             # Query GPT for an answer based on the document content
                             answer = query_gpt(query_input, text_elements + table_elements)
-                            st.markdown(f"**<span style='font-size:20px; font-weight:bold;'>Answer:</span>** {answer}")
+                            st.markdown(f"**<span style='font-weight:bold;'>Answer:</span>** {answer}")
 
                             # Save chat
                             st.session_state.old_chats.append((query_input, relevant_image_summary, relevant_image, explanation, answer))
 
                             # Scroll to the bottom of the page
                             st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
-
-                            # Scroll to bottom button in sidebar
-                            if st.sidebar.button("Scroll to Bottom"):
-                                st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
 
             # Button to scroll to the bottom
             if st.button("Scroll to Bottom", key="scroll-button"):
