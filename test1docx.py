@@ -202,34 +202,38 @@ def main():
                     st.image(relevant_image, caption=f"Relevant Image {idx + 1}")
                     st.write(f"Explanation {idx + 1}: {explanation}")
                     st.write(f"Answer {idx + 1}: {answer}")
-        
+
+            # Placeholder for results
+            results_placeholder = st.empty()
+
             # Query section
-            query = st.text_input("Enter your query: ", key="query-input")
-            if query:
+            query_col, button_col = st.columns([5, 1])
+            query = query_col.text_input("Enter your query:", key="query-input")
+            submit_query = button_col.button("Submit", key="submit-query-button")
+
+            if submit_query and query:
                 relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
 
                 if relevant_image_summary is None:
-                    st.write("No matching found")
+                    results_placeholder.write("No matching found")
                 else:
                     # Display relevant image summary
-                    st.write(f"Relevant Image Summary: {relevant_image_summary}")
+                    results_placeholder.write(f"Relevant Image Summary: {relevant_image_summary}")
 
                     # Decode and display image
                     relevant_image = decode_image(encode_image(relevant_image_blob))
-                    st.image(relevant_image)
+                    results_placeholder.image(relevant_image)
 
                     # Explain the image summary
                     explanation = explain_image_summary(relevant_image_summary)
-                    st.write(f"Explanation: {explanation}")
+                    results_placeholder.write(f"Explanation: {explanation}")
 
                     # Query GPT for an answer based on the document content
                     answer = query_gpt(query, text_elements + table_elements)
-                    st.write(f"Answer: {answer}")
+                    results_placeholder.write(f"Answer: {answer}")
 
                     # Save chat
                     st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
-
-          
 
 if __name__ == "__main__":
     main()
