@@ -125,7 +125,8 @@ def main():
     st.title("Document Analysis")
 
     # Sidebar elements
-    st.sidebar.header("Controls")
+    st.sidebar.header("Document analyser")
+    st.sidebar.header("Controls:")
     
     # API key management
     if 'api_key_entered' not in st.session_state:
