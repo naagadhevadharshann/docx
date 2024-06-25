@@ -120,17 +120,6 @@ def explain_image_summary(image_summary):
     )
     return response.choices[0].message['content'].strip()
 
-# Function to scroll to the bottom of the page
-def scroll_to_bottom():
-    st.markdown(
-        """
-        <script>
-        window.scrollTo(0, document.body.scrollHeight);
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
-
 # Main function
 def main():
     st.title("Document Analysis")
@@ -218,11 +207,9 @@ def main():
             results_placeholder = st.empty()
 
             # Query section
-            query_col, button_col = st.columns([5, 1])
-            query_input = query_col.text_input("Enter your query:", key="query-input")
-            submit_query = button_col.button("Submit", key="submit-query-button")
+            query_input = st.text_input("Enter your query:")
 
-            if submit_query or st.session_state.get('query_submit', False):
+            if st.button("Submit") or st.session_state.get('query_submit', False):
                 if query_input:
                     st.session_state.query_submit = False
                     with results_placeholder.container():
@@ -250,18 +237,11 @@ def main():
                             st.session_state.old_chats.append((query_input, relevant_image_summary, relevant_image, explanation, answer))
 
                             # Scroll to the bottom of the page
-                            scroll_to_bottom()
+                            st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
 
             # Button to scroll to the bottom
             if st.button("Scroll to Bottom", key="scroll-button"):
-                scroll_to_bottom()
-
-            # Handle enter key press to submit query
-            st.session_state.query_submit = False
-            def enter_key_callback():
-                st.session_state.query_submit = True
-
-            query_col.text_input("Enter your query:", key="query-input-2", on_change=enter_key_callback)
+                st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
