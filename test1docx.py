@@ -46,20 +46,24 @@ def decode_image(encoded_image):
 # Function to summarize image using GPT-4 Vision and cache results
 @st.cache_data(show_spinner=False)
 def summarize_image(encoded_image, _chain_gpt_4_vision):
-    prompt = [
-        AIMessage(content="You are a bot that is good at analyzing images."),
-        HumanMessage(content=[
-            {"type": "text", "text": "Describe the contents of this image."},
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{encoded_image}"
+    try:
+        prompt = [
+            AIMessage(content="You are a bot that is good at analyzing images."),
+            HumanMessage(content=[
+                {"type": "text", "text": "Describe the contents of this image."},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{encoded_image}"
+                    },
                 },
-            },
-        ])
-    ]
-    response = _chain_gpt_4_vision.invoke(prompt)
-    return response.content
+            ])
+        ]
+        response = _chain_gpt_4_vision.invoke(prompt)
+        return response.content
+    except openai.error.OpenAIError as e:
+        st.error(f"An error occurred while summarizing the image: {str(e)}")
+        return None
 
 # Function to get user input for file path using file uploader
 def get_file_path():
