@@ -233,8 +233,8 @@ def main():
                 query, relevant_image_summary, relevant_image, explanation, answer = chat
                 st.write(f"**Query {idx + 1}:** {query}")
                 st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
-                    st.write(f"Explanation {idx + 1}: {explanation}")
-                    st.write(f"Answer {idx + 1}: {answer}")
+                st.write(f"Explanation {idx + 1}: {explanation}")
+                st.write(f"Answer {idx + 1}: {answer}")
 
 if __name__ == "__main__":
     main()
