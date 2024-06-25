@@ -125,7 +125,7 @@ def main():
     st.title("Document Analysis")
 
     # Sidebar elements
-    st.sidebar.markdown("<h1 style='text-align: center; color: black;'>Document Analyzer</h1>", unsafe_allow_html=True)
+    st.sidebar.markdown("<h1 style='color: white; font-size: 24px; font-weight: bold;'>Document Analyzer</h1>", unsafe_allow_html=True)
     st.sidebar.header("Controls:")
    
     
