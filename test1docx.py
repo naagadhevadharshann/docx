@@ -261,7 +261,7 @@ def main():
             def enter_key_callback():
                 st.session_state.query_submit = True
 
-            query_col.text_input("Enter your query:", key="query-input", on_change=enter_key_callback)
+            query_col.text_input("Enter your query:", key="query-input-2", on_change=enter_key_callback)
 
 if __name__ == "__main__":
     main()
