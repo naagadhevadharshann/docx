@@ -98,7 +98,7 @@ def query_gpt(query, relevant_texts):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
     return response.choices[0].message['content'].strip()
 
@@ -116,7 +116,7 @@ def explain_image_summary(image_summary):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
     return response.choices[0].message['content'].strip()
 
@@ -154,7 +154,7 @@ def main():
     # Show the remaining controls only if API key is entered
     if st.session_state.api_key_entered:
         default_threshold = 0.365
-        threshold = st.sidebar.slider("Enter the threshold value (0-1): ", min_value=0.0, max_value=1.0, step=0.001, value=default_threshold, key="threshold-slider")
+        threshold = st.sidebar.slider("Enter the threshold value (0-1): ", min_value=0.0, max_value=1.0, step=0.0001, value=default_threshold, key="threshold-slider")
 
         if 'show_summaries' not in st.session_state:
             st.session_state.show_summaries = False
