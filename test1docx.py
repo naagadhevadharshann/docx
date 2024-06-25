@@ -2,8 +2,8 @@ import openai
 import os
 from docx import Document as DocxDocument
 import base64
-from langchain_community.chat_models import ChatOpenAI  # Updated import
-from langchain_community.schema.messages import HumanMessage, AIMessage  # Updated import
+from langchain.chat_models import ChatOpenAI
+from langchain.schema.messages import HumanMessage, AIMessage
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
@@ -150,10 +150,6 @@ def main():
     if 'old_chats' not in st.session_state:
         st.session_state.old_chats = []
 
-    # Initialize query_submit if it doesn't exist
-    if 'query_submit' not in st.session_state:
-        st.session_state.query_submit = False
-
     # Show the remaining controls only if API key is entered
     if st.session_state.api_key_entered:
         default_threshold = 0.365
@@ -211,7 +207,10 @@ def main():
             results_placeholder = st.empty()
 
             # Query section
-            query_input = st.text_area("Enter your query:", key="query-input", on_change=lambda new_value: st.session_state.update(query_input=new_value))
+            query_input = st.text_area("Enter your query:", key="query-input")
+
+            if query_input:
+                st.session_state.query_submit = True
 
             # Handle automatic submission of query
             if st.session_state.query_submit or st.session_state.get('last_submit_time', 0) < st.session_state.query_input_change_time:
