@@ -127,7 +127,6 @@ def main():
     # Sidebar elements
     st.sidebar.markdown("<h1 style='color: white; font-size: 24px; font-weight: bold;'>Document Analyzer</h1>", unsafe_allow_html=True)
     st.sidebar.header("Controls:")
-   
     
     # API key management
     if 'api_key_entered' not in st.session_state:
@@ -211,12 +210,10 @@ def main():
             # Query section
             query_input = st.text_input("Enter your query:")
 
-            # Handling enter key press to submit query
-            if query_input:
-                query_input = query_input.strip()
-                if st.session_state.get('query_submit', False) or st.session_state.get('enter_pressed', False):
+            # Submit query logic
+            if st.button("Submit") or st.session_state.get('query_submit', False):
+                if query_input:
                     st.session_state.query_submit = False
-                    st.session_state.enter_pressed = False
                     with results_placeholder.container():
                         relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
 
@@ -243,10 +240,6 @@ def main():
 
                             # Scroll to the bottom of the page
                             st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
-
-            # Button to scroll to the bottom
-            if st.button("Scroll to Bottom", key="scroll-button"):
-                st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
 
             # JavaScript to handle enter key press
             st.markdown("""
