@@ -120,6 +120,17 @@ def explain_image_summary(image_summary):
     )
     return response.choices[0].message['content'].strip()
 
+# Function to scroll to the bottom of the page
+def scroll_to_bottom():
+    st.markdown(
+        """
+        <script>
+        window.scrollTo(0, document.body.scrollHeight);
+        </script>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # Main function
 def main():
     st.title("Document Analysis")
@@ -197,47 +208,60 @@ def main():
             if 'old_chats' in st.session_state:
                 for idx, chat in enumerate(st.session_state.old_chats):
                     query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.write(f"Query {idx + 1}: {query}")
-                    st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
-                    st.image(relevant_image, caption=f"Relevant Image {idx + 1}")
-                    st.write(f"Explanation {idx + 1}: {explanation}")
-                    st.write(f"Answer {idx + 1}: {answer}")
+                    st.markdown(f"**<span style='font-size:20px;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
+                    st.markdown(f"**Relevant Image Summary {idx + 1}:** {relevant_image_summary}")
+                    st.image(relevant_image, caption=f"Image {idx + 1}")
+                    st.markdown(f"**Explanation {idx + 1}:** {explanation}")
+                    st.markdown(f"**Answer {idx + 1}:** {answer}")
 
             # Placeholder for results
             results_placeholder = st.empty()
 
             # Query section
             query_col, button_col = st.columns([5, 1])
-            query = query_col.text_input("Enter your query:", key="query-input")
+            query_input = query_col.text_input("Enter your query:", key="query-input")
             submit_query = button_col.button("Submit", key="submit-query-button")
 
-            if submit_query and query:
-                with results_placeholder.container():
-                    relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
+            if submit_query or st.session_state.get('query_submit', False):
+                if query_input:
+                    st.session_state.query_submit = False
+                    with results_placeholder.container():
+                        relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
 
-                    if relevant_image_summary is None:
-                        st.write("No matching found")
-                    else:
-                        # Display relevant image summary
-                        st.write(f"Relevant Image Summary: {relevant_image_summary}")
+                        if relevant_image_summary is None:
+                            st.write("No matching found")
+                        else:
+                            # Display relevant image summary
+                            st.markdown(f"**Relevant Image Summary:** {relevant_image_summary}")
 
-                        # Decode and display image
-                        relevant_image = decode_image(encode_image(relevant_image_blob))
-                        st.image(relevant_image)
+                            # Decode and display image
+                            relevant_image = decode_image(encode_image(relevant_image_blob))
+                            st.image(relevant_image, caption="Relevant Image")
 
-                        # Explain the image summary
-                        explanation = explain_image_summary(relevant_image_summary)
-                        st.write(f"Explanation: {explanation}")
+                            # Explain the image summary
+                            explanation = explain_image_summary(relevant_image_summary)
+                            st.markdown(f"**Explanation:** {explanation}")
 
-                        # Query GPT for an answer based on the document content
-                        answer = query_gpt(query, text_elements + table_elements)
-                        st.write(f"Answer: {answer}")
+                            # Query GPT for an answer based on the document content
+                            answer = query_gpt(query_input, text_elements + table_elements)
+                            st.markdown(f"**Answer:** {answer}")
 
-                        # Save chat
-                        st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
+                            # Save chat
+                            st.session_state.old_chats.append((query_input, relevant_image_summary, relevant_image, explanation, answer))
 
-                    # Clear query input
-                    st.experimental_rerun()
+                            # Scroll to the bottom of the page
+                            scroll_to_bottom()
+
+            # Button to scroll to the bottom
+            if st.button("Scroll to Bottom", key="scroll-button"):
+                scroll_to_bottom()
+
+            # Handle enter key press to submit query
+            st.session_state.query_submit = False
+            def enter_key_callback():
+                st.session_state.query_submit = True
+
+            query_col.text_input("Enter your query:", key="query-input", on_change=enter_key_callback)
 
 if __name__ == "__main__":
     main()
