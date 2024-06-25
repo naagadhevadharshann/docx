@@ -207,11 +207,16 @@ def main():
             results_placeholder = st.empty()
 
             # Query section
-            query_input = st.text_input("Enter your query:")
+            query_input = st.text_area("Enter your query:", key="query-input")
 
-            if st.button("Submit") or st.session_state.get('query_submit', False):
-                if query_input:
+            if query_input:
+                st.session_state.query_submit = True
+
+            # Handle automatic submission of query
+            if st.session_state.query_submit or st.session_state.get('last_submit_time', 0) < st.session_state.query_input_change_time:
+                if query_input.strip() != "":
                     st.session_state.query_submit = False
+                    st.session_state.last_submit_time = st.session_state.query_input_change_time
                     with results_placeholder.container():
                         relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
 
