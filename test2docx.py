@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 from PIL import Image
 import io
 import openai
+import uuid  # Import UUID library for generating unique IDs
 
 # Function to read docx file and process content
 def read_docx(file_path):
@@ -120,6 +121,11 @@ def explain_image_summary(image_summary):
     )
     return response.choices[0].message['content'].strip()
 
+# Function to generate a unique key
+def get_unique_key(base_key):
+    session_id = st.report_thread.get_report_ctx().session_id
+    return f"{base_key}_{session_id}"
+
 # Main function
 def main():
     st.title("Document Analysis")
@@ -154,8 +160,12 @@ def main():
     # Show the remaining controls only if API key is entered
     if st.session_state.api_key_entered:
         default_threshold = 0.365
-        threshold_value = st.session_state.get('threshold_value', default_threshold)
-        threshold_input = st.sidebar.text_input("Enter the threshold value (0-1):", threshold_value, key="threshold-input")
+        
+        # Generate unique keys for threshold input
+        threshold_key = get_unique_key("threshold-input")
+        
+        # Text input for threshold value with dynamic key
+        threshold_input = st.sidebar.text_input("Enter the threshold value (0-1):", default_threshold, key=threshold_key)
         
         # Validate the input and update threshold if valid
         try:
@@ -165,37 +175,13 @@ def main():
                 st.session_state.threshold_valid = False
             else:
                 st.session_state.threshold_valid = True
-                st.session_state.threshold_value = threshold  # Update threshold_value in session state
         except ValueError:
             st.sidebar.warning("Please enter a numerical value.")
             st.session_state.threshold_valid = False
 
         if st.session_state.threshold_valid:
             st.sidebar.slider("Threshold Slider", min_value=0.0, max_value=1.0, step=0.001, value=threshold, key="threshold-slider")
-
-        # Bi-directional synchronization between slider and text input box
-        def slider_to_text(slider_value):
-            st.session_state.threshold_value = slider_value
-            st.session_state.threshold_valid = True
-            st.sidebar.text_input("Enter the threshold value (0-1):", slider_value, key="threshold-input")
-
-        def text_to_slider(text_value):
-            try:
-                threshold = float(text_value)
-                if 0 <= threshold <= 1:
-                    st.session_state.threshold_value = threshold
-                    st.session_state.threshold_valid = True
-                    st.sidebar.slider("Threshold Slider", min_value=0.0, max_value=1.0, step=0.001, value=threshold, key="threshold-slider")
-                else:
-                    st.sidebar.warning("Threshold must be between 0 and 1.")
-                    st.session_state.threshold_valid = False
-            except ValueError:
-                st.sidebar.warning("Please enter a numerical value.")
-                st.session_state.threshold_valid = False
-
-        st.sidebar.text_input("Enter the threshold value (0-1):", threshold_value, key="threshold-input", on_change=text_to_slider)
-        st.sidebar.slider("Threshold Slider", min_value=0.0, max_value=1.0, step=0.001, value=threshold_value, key="threshold-slider", on_change=slider_to_text)
-
+        
         if 'show_summaries' not in st.session_state:
             st.session_state.show_summaries = False
 
@@ -255,7 +241,7 @@ def main():
                 if query_input:
                     st.session_state.query_submit = False
                     with results_placeholder.container():
-                        relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold_value, model, image_embeddings, image_summaries, image_elements)
+                        relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
 
                         if relevant_image_summary is None:
                             st.write("No matching found")
