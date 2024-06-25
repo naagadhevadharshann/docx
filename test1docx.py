@@ -258,15 +258,8 @@ def main():
             """, unsafe_allow_html=True)
 
             # Scroll to bottom button in the sidebar
-            if st.sidebar.button("Scroll to Bottom"):
-                st.markdown("""
-                <script>
-                    document.querySelector('body').scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'end' 
-                    });
-                </script>
-                """, unsafe_allow_html=True)
+            if st.button('Scroll to Bottom'):
+                st.markdown("""<script>window.scrollTo(0, document.body.scrollHeight);</script>""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
