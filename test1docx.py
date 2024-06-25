@@ -197,11 +197,11 @@ def main():
             if 'old_chats' in st.session_state:
                 for idx, chat in enumerate(st.session_state.old_chats):
                     query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.markdown(f"**<span style='font-size:20px; font-weight:bold;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
-                    st.markdown(f"**<span style='font-weight:bold;'>Relevant Image Summary {idx + 1}:</span>** {relevant_image_summary}")
+                    st.markdown(f"**<span style='font-size:20px;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
+                    st.markdown(f"**Relevant Image Summary {idx + 1}:** {relevant_image_summary}")
                     st.image(relevant_image, caption=f"Image {idx + 1}")
-                    st.markdown(f"**<span style='font-weight:bold;'>Explanation {idx + 1}:</span>** {explanation}")
-                    st.markdown(f"**<span style='font-weight:bold;'>Answer {idx + 1}:</span>** {answer}")
+                    st.markdown(f"**Explanation {idx + 1}:** {explanation}")
+                    st.markdown(f"**Answer {idx + 1}:** {answer}")
 
             # Placeholder for results
             results_placeholder = st.empty()
@@ -219,7 +219,7 @@ def main():
                             st.write("No matching found")
                         else:
                             # Display relevant image summary
-                            st.markdown(f"**<span style='font-size:20px; font-weight:bold;'>Relevant Image Summary:</span>** {relevant_image_summary}")
+                            st.markdown(f"**Relevant Image Summary:** {relevant_image_summary}")
 
                             # Decode and display image
                             relevant_image = decode_image(encode_image(relevant_image_blob))
@@ -227,11 +227,11 @@ def main():
 
                             # Explain the image summary
                             explanation = explain_image_summary(relevant_image_summary)
-                            st.markdown(f"**<span style='font-weight:bold;'>Explanation:</span>** {explanation}")
+                            st.markdown(f"**Explanation:** {explanation}")
 
                             # Query GPT for an answer based on the document content
                             answer = query_gpt(query_input, text_elements + table_elements)
-                            st.markdown(f"**<span style='font-weight:bold;'>Answer:</span>** {answer}")
+                            st.markdown(f"**Answer:** {answer}")
 
                             # Save chat
                             st.session_state.old_chats.append((query_input, relevant_image_summary, relevant_image, explanation, answer))
