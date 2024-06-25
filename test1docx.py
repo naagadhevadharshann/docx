@@ -224,15 +224,15 @@ def main():
                 st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
 
                 # Add a new query box
-                st.text_input("Enter your query: ", key="query-input-new", label_visibility="collapsed"))
+                st.text_input("Enter your query: ", key="query-input-new", label_visibility="collapsed")
 
-            # Show old chats
-            if 'old_chats' in st.session_state:
-                st.write("Chat History:")
-                for idx, chat in enumerate(st.session_state.old_chats):
-                    query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.write(f"Query {idx + 1}: {query}")
-                    st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
+        # Show old chats
+        if 'old_chats' in st.session_state:
+            st.write("Chat History:")
+            for idx, chat in enumerate(st.session_state.old_chats):
+                query, relevant_image_summary, relevant_image, explanation, answer = chat
+                st.write(f"**Query {idx + 1}:** {query}")
+                st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
                     st.write(f"Explanation {idx + 1}: {explanation}")
                     st.write(f"Answer {idx + 1}: {answer}")
 
