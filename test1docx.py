@@ -211,9 +211,12 @@ def main():
             # Query section
             query_input = st.text_input("Enter your query:")
 
-            if st.button("Submit") or st.session_state.get('query_submit', False):
-                if query_input:
+            # Handling enter key press to submit query
+            if query_input:
+                query_input = query_input.strip()
+                if st.session_state.get('query_submit', False) or st.session_state.get('enter_pressed', False):
                     st.session_state.query_submit = False
+                    st.session_state.enter_pressed = False
                     with results_placeholder.container():
                         relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
 
@@ -244,6 +247,22 @@ def main():
             # Button to scroll to the bottom
             if st.button("Scroll to Bottom", key="scroll-button"):
                 st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
+
+            # JavaScript to handle enter key press
+            st.markdown("""
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const input = document.querySelector('.stTextInput > input');
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            var enter_pressed = true;
+                            var query_submit = true;
+                            Streamlit.setComponentValue({'enter_pressed': enter_pressed, 'query_submit': query_submit});
+                        }
+                    });
+                });
+            </script>
+            """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
