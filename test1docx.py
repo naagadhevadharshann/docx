@@ -46,24 +46,20 @@ def decode_image(encoded_image):
 # Function to summarize image using GPT-4 Vision and cache results
 @st.cache_data(show_spinner=False)
 def summarize_image(encoded_image, _chain_gpt_4_vision):
-    try:
-        prompt = [
-            AIMessage(content="You are a bot that is good at analyzing images."),
-            HumanMessage(content=[
-                {"type": "text", "text": "Describe the contents of this image."},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{encoded_image}"
-                    },
+    prompt = [
+        AIMessage(content="You are a bot that is good at analyzing images."),
+        HumanMessage(content=[
+            {"type": "text", "text": "Describe the contents of this image."},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{encoded_image}"
                 },
-            ])
-        ]
-        response = _chain_gpt_4_vision.invoke(prompt)
-        return response.content
-    except openai.error.OpenAIError as e:
-        st.error(f"An error occurred while summarizing the image: {str(e)}")
-        return None
+            },
+        ])
+    ]
+    response = _chain_gpt_4_vision.invoke(prompt)
+    return response.content
 
 # Function to get user input for file path using file uploader
 def get_file_path():
@@ -102,7 +98,7 @@ def query_gpt(query, relevant_texts):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=1500
+        max_tokens=150
     )
     return response.choices[0].message['content'].strip()
 
@@ -120,7 +116,7 @@ def explain_image_summary(image_summary):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=1500
+        max_tokens=150
     )
     return response.choices[0].message['content'].strip()
 
@@ -195,51 +191,46 @@ def main():
 
                 # Generate image summary embeddings
                 image_embeddings = model.encode(image_summaries, convert_to_tensor=True)
-        
-        # Display chat history
-        if 'old_chats' in st.session_state and st.session_state.old_chats:
-            for idx, chat in enumerate(st.session_state.old_chats):
-                query, relevant_image_summary, relevant_image, explanation, answer = chat
-                st.write(f"**Query {idx + 1}:** {query}")
-                st.write(f"**Bot:** {relevant_image_summary}")
-                st.image(relevant_image, caption=f"Image related to query {idx + 1}")
-                st.write(f"**Explanation:** {explanation}")
-                st.write(f"**Answer:** {answer}")
-        
-        # Fixed query input at the bottom
-        st.markdown(
-            """
-            <style>
-            .fixed-bottom {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                background-color: #ffffff;
-                padding: 10px;
-                border-top: 1px solid #dddddd;
-                z-index: 9999;
-            }
-            .fixed-bottom input {
-                width: 100%;
-                padding: 10px;
-                font-size: 16px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
 
-        query = st.text_input("Enter your query: ", key="query-input", label_visibility="collapsed", placeholder="Type your message here...", on_change=None, args=None, kwargs=None, disabled=False)
+            # Display old chats at the top of the page
+            st.write("Chat History:")
+            if 'old_chats' in st.session_state:
+                for idx, chat in enumerate(st.session_state.old_chats):
+                    query, relevant_image_summary, relevant_image, explanation, answer = chat
+                    st.write(f"Query {idx + 1}: {query}")
+                    st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
+                    st.image(relevant_image, caption=f"Relevant Image {idx + 1}")
+                    st.write(f"Explanation {idx + 1}: {explanation}")
+                    st.write(f"Answer {idx + 1}: {answer}")
         
-        if query:
-            with st.spinner("Processing your query..."):
+            # Query section
+            query = st.text_input("Enter your query: ", key="query-input")
+            if query:
                 relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
 
                 if relevant_image_summary is None:
                     st.write("No matching found")
                 else:
+                    # Display relevant image summary
+                    st.write(f"Relevant Image Summary: {relevant_image_summary}")
+
+                    # Decode and display image
                     relevant_image = decode_image(encode_image(relevant_image_blob))
-                    st.write(f"Relevant Image Summary: {relevant_image}")
+                    st.image(relevant_image)
+
+                    # Explain the image summary
+                    explanation = explain_image_summary(relevant_image_summary)
+                    st.write(f"Explanation: {explanation}")
+
+                    # Query GPT for an answer based on the document content
+                    answer = query_gpt(query, text_elements + table_elements)
+                    st.write(f"Answer: {answer}")
+
+                    # Save chat
+                    st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
+
+            # Add a new query box
+            st.text_input("Enter your query: ", key="query-input-new", help="Enter your next query here.")
 
 if __name__ == "__main__":
     main()
