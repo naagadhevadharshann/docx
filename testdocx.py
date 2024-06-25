@@ -98,7 +98,7 @@ def query_gpt(query, relevant_texts):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
     return response.choices[0].message['content'].strip()
 
@@ -116,7 +116,7 @@ def explain_image_summary(image_summary):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
     return response.choices[0].message['content'].strip()
 
