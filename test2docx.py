@@ -1,6 +1,6 @@
-import openai
-import os
+import streamlit as st
 from docx import Document as DocxDocument
+import os
 import base64
 from langchain.chat_models import ChatOpenAI
 from langchain.schema.messages import HumanMessage, AIMessage
@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from PIL import Image
 import io
-import streamlit as st
+import openai
 
 # Function to read docx file and process content
 def read_docx(file_path):
@@ -98,9 +98,9 @@ def query_gpt(query, relevant_texts):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message['content'].strip()
 
 # Function to explain the image summary
 def explain_image_summary(image_summary):
@@ -116,16 +116,17 @@ def explain_image_summary(image_summary):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150
+        max_tokens=1500
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response.choices[0].message['content'].strip()
 
 # Main function
 def main():
     st.title("Document Analysis")
 
     # Sidebar elements
-    st.sidebar.header("Controls")
+    st.sidebar.markdown("<h1 style='color: white; font-size: 24px; font-weight: bold;'>Document Analyzer</h1>", unsafe_allow_html=True)
+    st.sidebar.header("Controls:")
     
     # API key management
     if 'api_key_entered' not in st.session_state:
@@ -153,8 +154,23 @@ def main():
     # Show the remaining controls only if API key is entered
     if st.session_state.api_key_entered:
         default_threshold = 0.365
-        threshold = st.sidebar.slider("Enter the threshold value (0-1): ", min_value=0.0, max_value=1.0, step=0.001, value=default_threshold, key="threshold-slider")
+        threshold_input = st.sidebar.text_input("Enter the threshold value (0-1):", default_threshold, key="threshold-input")
+        
+        # Validate the input and update threshold if valid
+        try:
+            threshold = float(threshold_input)
+            if threshold < 0 or threshold > 1:
+                st.sidebar.warning("Threshold must be between 0 and 1.")
+                st.session_state.threshold_valid = False
+            else:
+                st.session_state.threshold_valid = True
+        except ValueError:
+            st.sidebar.warning("Please enter a numerical value.")
+            st.session_state.threshold_valid = False
 
+        if st.session_state.threshold_valid:
+            st.sidebar.slider("Threshold Slider", min_value=0.0, max_value=1.0, step=0.001, value=threshold, key="threshold-slider")
+        
         if 'show_summaries' not in st.session_state:
             st.session_state.show_summaries = False
 
@@ -191,45 +207,74 @@ def main():
 
                 # Generate image summary embeddings
                 image_embeddings = model.encode(image_summaries, convert_to_tensor=True)
-        
-            # Query section
-            query = st.text_input("Enter your query: ", key="query-input")
-            if query:
-                relevant_image_summary, relevant_image_blob = find_relevant_content(query, threshold, model, image_embeddings, image_summaries, image_elements)
 
-                if relevant_image_summary is None:
-                    st.write("No matching found")
-                else:
-                    # Display relevant image summary
-                    st.write(f"Relevant Image Summary: {relevant_image_summary}")
-
-                    # Decode and display image
-                    relevant_image = decode_image(encode_image(relevant_image_blob))
-                    st.image(relevant_image)
-
-                    # Explain the image summary
-                    explanation = explain_image_summary(relevant_image_summary)
-                    st.write(f"Explanation: {explanation}")
-
-                    # Query GPT for an answer based on the document content
-                    answer = query_gpt(query, text_elements + table_elements)
-                    st.write(f"Answer: {answer}")
-
-                    # Save chat
-                    st.session_state.old_chats.append((query, relevant_image_summary, relevant_image, explanation, answer))
-
-                    # Add a new query box
-                    st.text_input("Enter your query: ", key="query-input-new")
-
-            # Show old chats
+            # Display old chats at the top of the page
+            st.write("Chat History:")
             if 'old_chats' in st.session_state:
-                st.write("Chat History:")
                 for idx, chat in enumerate(st.session_state.old_chats):
                     query, relevant_image_summary, relevant_image, explanation, answer = chat
-                    st.write(f"Query {idx + 1}: {query}")
-                    st.write(f"Relevant Image Summary {idx + 1}: {relevant_image_summary}")
-                    st.write(f"Explanation {idx + 1}: {explanation}")
-                    st.write(f"Answer {idx + 1}: {answer}")
+                    st.markdown(f"**<span style='font-size:20px;'>Query {idx + 1}:</span>** {query}", unsafe_allow_html=True)
+                    st.markdown(f"**Relevant Image Summary {idx + 1}:** {relevant_image_summary}")
+                    st.image(relevant_image, caption=f"Image {idx + 1}")
+                    st.markdown(f"**Explanation {idx + 1}:** {explanation}")
+                    st.markdown(f"**Answer {idx + 1}:** {answer}")
+
+            # Placeholder for results
+            results_placeholder = st.empty()
+
+            # Query section
+            query_input = st.text_input("Enter your query:")
+
+            # Submit query logic
+            if st.button("Submit") or st.session_state.get('query_submit', False):
+                if query_input:
+                    st.session_state.query_submit = False
+                    with results_placeholder.container():
+                        relevant_image_summary, relevant_image_blob = find_relevant_content(query_input, threshold, model, image_embeddings, image_summaries, image_elements)
+
+                        if relevant_image_summary is None:
+                            st.write("No matching found")
+                        else:
+                            # Display relevant image summary
+                            st.markdown(f"**Relevant Image Summary:** {relevant_image_summary}")
+
+                            # Decode and display image
+                            relevant_image = decode_image(encode_image(relevant_image_blob))
+                            st.image(relevant_image, caption="Relevant Image")
+
+                            # Explain the image summary
+                            explanation = explain_image_summary(relevant_image_summary)
+                            st.markdown(f"**Explanation:** {explanation}")
+
+                            # Query GPT for an answer based on the document content
+                            answer = query_gpt(query_input, text_elements + table_elements)
+                            st.markdown(f"**Answer:** {answer}")
+
+                            # Save chat
+                            st.session_state.old_chats.append((query_input, relevant_image_summary, relevant_image, explanation, answer))
+
+                            # Scroll to the bottom of the page
+                            st.markdown('<style>div.css-1l02zno{height:80vh;}</style>', unsafe_allow_html=True)
+
+            # JavaScript to handle enter key press
+            st.markdown("""
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const input = document.querySelector('.stTextInput > input');
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            var enter_pressed = true;
+                            var query_submit = true;
+                            Streamlit.setComponentValue({'enter_pressed': enter_pressed, 'query_submit': query_submit});
+                        }
+                    });
+                });
+            </script>
+            """, unsafe_allow_html=True)           
+
+             # Scroll to bottom button in the sidebar
+            if st.sidebar.button("Scroll to Bottom"):
+                st.markdown("""<script>window.scrollTo(0, document.body.scrollHeight);</script>""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
